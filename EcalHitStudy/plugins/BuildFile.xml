@@ -15,3 +15,4 @@
 <use name="Geometry/Records"/>
 <use name="Calibration/Tools"/>
 <flags EDM_PLUGIN="1"/>
+<!--Flags CXXFLAGS="-g"/-->

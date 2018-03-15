@@ -4,7 +4,6 @@
 <use name="FWCore/ServiceRegistry"/>
 <use name="DataFormats/Math"/>
 <use name="DataFormats/EgammaCandidates"/>
-<use name="DataFormats/PatCandidates"/>
 <use name="DataFormats/Common"/>
 <use name="DataFormats/HepMCCandidate"/>
 <use name="DataFormats/JetReco"/>
@@ -16,3 +15,4 @@
 <use name="Geometry/Records"/>
 <use name="Calibration/Tools"/>
 <flags EDM_PLUGIN="1"/>
+<Flags CXXFLAGS="-g"/>

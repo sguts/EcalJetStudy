@@ -69,7 +69,7 @@
 
 class ParticleGunEcalHitStudy : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
    public:
-      explicit ParticleGunEcalHitStudy(const edm::ParameterSet&);
+      explicit ParticleGunEcalHitStudy(const edm::ParameterSet& iConfig);
       ~ParticleGunEcalHitStudy();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
@@ -99,10 +99,8 @@ class ParticleGunEcalHitStudy : public edm::one::EDAnalyzer<edm::one::SharedReso
       edm::Handle<std::vector<reco::PFJet>> ak4PFJetsHandle;
       edm::EDGetTokenT<std::vector<reco::PFJet>> ak4PFJetsToken;
 
-
-
-
-      ECalHitHistogramContainer HistogramContainer;
+      double q;
+      ECalJetInteractionProcessor HistogramContainer;
 };
 
 //
@@ -117,24 +115,25 @@ class ParticleGunEcalHitStudy : public edm::one::EDAnalyzer<edm::one::SharedReso
 // constructors and destructor
 //
 ParticleGunEcalHitStudy::ParticleGunEcalHitStudy(const edm::ParameterSet& iConfig)
-
 {
    //now do what ever initialization is needed
+   std::cout << "Hi! number 2" << std::endl;
    usesResource("TFileService");
    edm::Service<TFileService> file_service;
+ 
    genParticleToken = consumes< std::vector < reco::GenParticle> >(edm::InputTag("genParticles"));
    genJetsToken = consumes <std::vector <reco::GenJet>>(edm::InputTag("ak4GenJets"));
-
+   ak4PFJetsToken = consumes <std::vector<reco::PFJet>>(edm::InputTag("ak4PFJets"));
+   
    pCaloHitsEBToken = consumes<edm::PCaloHitContainer>(edm::InputTag("g4SimHits", "EcalHitsEB", "HLT"));
    pCaloHitsEEToken = consumes<edm::PCaloHitContainer>(edm::InputTag("g4SimHits", "EcalHitsEE", "HLT"));
    pCaloHitsESToken = consumes<edm::PCaloHitContainer>(edm::InputTag("g4SimHits", "EcalHitsES", "HLT"));
 
-   ak4PFJetsToken = consumes<std::vector<reco::PFJet>>(edm::InputTag("ak4PFJets"));
+   
 
-   HistogramContainer.InitializeHistograms(file_service);
-
-
-
+   
+   HistogramContainer.InitializeHistograms(file_service, iConfig.getParameter<std::string>("plotSaveFolder"));
+   
 
 }
 
@@ -160,30 +159,48 @@ ParticleGunEcalHitStudy::analyze(const edm::Event& iEvent, const edm::EventSetup
    using namespace std;
    
 
-   iSetup.get<CaloGeometryRecord>().get(pG);
-   EcalRingCalibrationTools::setCaloGeometry(&(*pG));
+   
+    //Geometry under construction?
+    
+    if ( currentEventCollections.endcapGeometry == nullptr || currentEventCollections.barrelGeometry == nullptr) {
+        iSetup.get<CaloGeometryRecord>().get(pG);
+        EcalRingCalibrationTools::setCaloGeometry(&(*pG));
+    
+        currentEventCollections.endcapGeometry =  pG->getSubdetectorGeometry(DetId::Ecal, EcalEndcap);
+        currentEventCollections.barrelGeometry =  pG->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
+    }
+   
+   //getting digi shit?
+   
+   std::cout << "Getting by token" << std::endl;
 
 
    iEvent.getByToken(genParticleToken, genParticleHandle); //GenParticle
    iEvent.getByToken(genJetsToken, genJetsHandle); //GenJets
+   iEvent.getByToken(ak4PFJetsToken, ak4PFJetsHandle); //PF Jets
 
+   std::cout << "Grabbing Ecal" << std::endl;
    iEvent.getByToken(pCaloHitsEBToken, pCaloHitsEBHandle);     //PCaloHit Barrel
    iEvent.getByToken(pCaloHitsEEToken, pCaloHitsEEHandle);     //PCaloHit Endcap
    iEvent.getByToken(pCaloHitsESToken, pCaloHitsESHandle);     //PCaloHit Preshower
 
-   iEvent.getByToken(ak4PFJetsToken, ak4PFJetsHandle); //PF Jets
+   
 
-   currentEventCollections.endcapGeometry =  pG->getSubdetectorGeometry(DetId::Ecal, EcalEndcap);
-   currentEventCollections.barrelGeometry =  pG->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
+   std::cout << "Assigning" << std::endl;
 
    currentEventCollections.genParticles = *genParticleHandle;
+   std::cout << "1" << std::endl;
    currentEventCollections.genJets = *genJetsHandle;
+   std::cout << "2" << std::endl;
    currentEventCollections.ak4PFJets = *ak4PFJetsHandle;
+   std::cout << "3" << std::endl;
    currentEventCollections.endcapHitsContainer = *pCaloHitsEEHandle;
+   std::cout << "4" << std::endl;
    currentEventCollections.barrelHitsContainer = *pCaloHitsEBHandle;
+   std::cout << "5" << std::endl;
 
+   std::cout << "going to FillEventHistograms" << std::endl;
    HistogramContainer.FillEventHistograms(currentEventCollections);
-
 }
 
 
