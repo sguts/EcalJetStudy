@@ -1,0 +1,19 @@
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/ServiceRegistry"/>
+<use name="DataFormats/Math"/>
+<use name="DataFormats/EgammaCandidates"/>
+<use name="DataFormats/Common"/>
+<use name="DataFormats/HepMCCandidate"/>
+<use name="DataFormats/JetReco"/>
+<use name="DataFormats/EcalDetId"/>
+<use name="SimDataFormats/PileupSummaryInfo"/>
+<use name="SimDataFormats/CaloHit"/>
+<use name="CommonTools/UtilAlgos"/>
+<use name="Geometry/CaloGeometry"/>
+<use name="Geometry/Records"/>
+<use name="Calibration/Tools"/>
+<flags EDM_PLUGIN="1"/>
+<Flags CXXFLAGS="-g"/>
+<!--comment-->
