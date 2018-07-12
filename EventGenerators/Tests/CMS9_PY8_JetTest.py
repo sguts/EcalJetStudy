@@ -46,8 +46,6 @@ process.RandomNumberGeneratorService.generator.initialSeed = 9879
 
 # Input source
 process.source = cms.Source("EmptySource")
-#Changing seed
-process.RandomNumberGeneratorService.generator.initialSeed =  int(sys.argv[2])
 
 process.options = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True)
@@ -80,7 +78,7 @@ process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
         filterName = cms.untracked.string('')
     ),
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
-    fileName = "/local/cms/user/guts/JetGenerator/Output/JetMC_Py8_%03d.root"%int(sys.argv[2]),
+    fileName = cms.untracked.string('Generate_Prompt_Electron_000.root'),
     outputCommands = process.AODSIMEventContent.outputCommands
 )
 

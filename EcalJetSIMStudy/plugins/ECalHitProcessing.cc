@@ -39,8 +39,9 @@ void ECalJetInteractionProcessor::InitializeEventAnalysisVariables () {
     
     
     //Barrel Crystal Coords: [arrayCiEta(iEta)][iPhi]
-    //Barrel Supercrystal Coords: [arraySCiEta(iEta)][iPhi]
+    //Barrel SuperCrystal Coords: [arraySCiEta(iEta)][iPhi]
 
+    //SIM barrel arrays
     for (int i=0; i<barrelSuperCrystaliEtaCount; i++) {
         std::vector<double> a(barrelSuperCrystaliPhiCount,0);
         barrelSuperCrystalEnergyEvent.push_back(a);
@@ -57,26 +58,74 @@ void ECalJetInteractionProcessor::InitializeEventAnalysisVariables () {
         std::vector<double> a(barrelCrystaliPhiCount,0);
         barrelCrystalEnergyTEvent.push_back(a);
     }
+    //Rec barrel  arrays
+    for (int i=0; i<barrelSuperCrystaliEtaCount; i++) {
+        std::vector<double> a(barrelSuperCrystaliPhiCount,0);
+        barrelSuperCrystalRecEnergyEvent.push_back(a);
+    }
+    for (int i=0; i<barrelCrystaliEtaCount; i++) {
+        std::vector<double> a(barrelCrystaliPhiCount,0);
+        barrelCrystalRecEnergyEvent.push_back(a);
+    }
+    for (int i=0; i<barrelSuperCrystaliEtaCount; i++) {
+        std::vector<double> a(barrelSuperCrystaliPhiCount,0);
+        barrelSuperCrystalRecEnergyTEvent.push_back(a);
+    }
+    for (int i=0; i<barrelCrystaliEtaCount; i++) {
+        std::vector<double> a(barrelCrystaliPhiCount,0);
+        barrelCrystalRecEnergyTEvent.push_back(a);
+    }
 
     //Endcap SC coords: just supercrystal id
     //Endcap Crystal coords: [iX][iY]
-    endcapPoszSupercrystalEnergyEvent = std::vector<double> (endcapSupercrystalCount,0);
-    endcapNegzSupercrystalEnergyEvent = std::vector<double> (endcapSupercrystalCount,0);
+    
+    //SIM endcap arrays
+    endcapPoszSuperCrystalEnergyEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    endcapNegzSuperCrystalEnergyEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    endcapPoszSuperCrystalEnergyTEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    endcapNegzSuperCrystalEnergyTEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    
     for (int i=0; i<endcapiXCount; i++) {
         std::vector<double> a(endcapiXCount,0);
         endcapCrystalEnergyEventPosz.push_back(a);
     }
-
     for (int i=0; i<endcapiXCount; i++) {
         std::vector<double> a(endcapiXCount,0);
         endcapCrystalEnergyEventNegz.push_back(a);
     }
+    for (int i=0; i<endcapiXCount; i++) {
+        std::vector<double> a(endcapiXCount,0);
+        endcapCrystalEnergyTEventPosz.push_back(a);
+    }
+    for (int i=0; i<endcapiXCount; i++) {
+        std::vector<double> a(endcapiXCount,0);
+        endcapCrystalEnergyTEventNegz.push_back(a);
+    }
+    
+    //Rec endcap arrays
+    endcapPoszSuperCrystalRecEnergyEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    endcapNegzSuperCrystalRecEnergyEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    endcapPoszSuperCrystalRecEnergyTEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    endcapNegzSuperCrystalRecEnergyTEvent = std::vector<double> (endcapSuperCrystalCount,0);
+    
+    for (int i=0; i<endcapiXCount; i++) {
+        std::vector<double> a(endcapiXCount,0);
+        endcapCrystalRecEnergyEventPosz.push_back(a);
+    }
 
-    //Digi under construction:
-    /*for(EBDigiCollection::const_iterator digiItr = (*EventCollections.barrelDigiCollection).begin();
-        digiItr != (*EventCollections.barrelDigiCollection).end(); ++digiItr) {
-        //digiItr->id();
-    } //No, doesn't work*/
+    for (int i=0; i<endcapiXCount; i++) {
+        std::vector<double> a(endcapiXCount,0);
+        endcapCrystalRecEnergyEventNegz.push_back(a);
+    }
+    for (int i=0; i<endcapiXCount; i++) {
+        std::vector<double> a(endcapiXCount,0);
+        endcapCrystalRecEnergyTEventPosz.push_back(a);
+    }
+
+    for (int i=0; i<endcapiXCount; i++) {
+        std::vector<double> a(endcapiXCount,0);
+        endcapCrystalRecEnergyTEventNegz.push_back(a);
+    }
 }
 
 void ECalJetInteractionProcessor::InitializeBarrelHistograms () {
@@ -241,6 +290,9 @@ void ECalJetInteractionProcessor::InitializeJetSplitHistograms (){
     std::vector <double> bins_Esim;
     std::vector <double> bins_EsimT;
 
+    std::vector <double> bins_Esim_SC;
+    std::vector <double> bins_EsimT_SC;
+    
     std::vector <double> bins_EsimDivNcr;
     std::vector <double> bins_EsimDivNcr_Dif;
 
@@ -254,6 +306,15 @@ void ECalJetInteractionProcessor::InitializeJetSplitHistograms (){
     for (int i=0; i<=100;i++) {
         bins_EsimT.push_back(i*0.02);
     }
+    
+    for (int i=0; i<=100;i++) {
+        bins_Esim_SC.push_back(i*0.10);
+        //change binning for 20 MeV, max to 2 GeV
+    }
+    for (int i=0; i<=100;i++) {
+        bins_EsimT_SC.push_back(i*0.10);
+    }
+    
     for (int i=0; i<=50;i++) {
         bins_EsimDivNcr.push_back(i*0.01);
     }
@@ -269,6 +330,12 @@ void ECalJetInteractionProcessor::InitializeJetSplitHistograms (){
 
     InitializeJetSplitHistogramsArray(jetSplitSubDir, JetSplitHistCont.numCrystal_ESim_Eta_Pt_DRIncAr,bins_Esim,"numCrystal_ESim_Eta_Pt_DRIncAr","Energy of individual crystals","E, GeV");
     InitializeJetSplitHistogramsArray(jetSplitSubDir, JetSplitHistCont.numCrystal_ESimT_Eta_Pt_DRIncAr,bins_EsimT,"numCrystal_ESimT_Eta_Pt_DRIncAr","Transversal energy of individual crystals","E_{T}, GeV");
+    
+    InitializeJetSplitHistogramsArray(jetSplitSubDir,JetSplitHistCont.numSuperCrystal_ESim_Eta_Pt_DRIncAr,bins_Esim_SC,"numSuperCrystal_ESim_Eta_Pt_DRIncAr","Energy of individual supercrystals","E, GeV");
+    InitializeJetSplitHistogramsArray(jetSplitSubDir,JetSplitHistCont.numSuperCrystal_ESimT_Eta_Pt_DRIncAr,bins_EsimT_SC,"numSuperCrystal_ESimT_Eta_Pt_DRIncAr","Transversal energy of individual supercrystals","E_{T}, GeV");
+    
+    //std::vector <TH3D*> numSuperCrystal_ESim_Eta_Pt_DRIncAr; //Under Construction
+    //std::vector <TH3D*> numSuperCrystal_ESimT_Eta_Pt_DRIncAr; //Under Construction
 
     InitializeJetSplitHistogramsArray(jetSplitSubDir, JetSplitHistCont.numJet_ESimDivNcr_Eta_Pt_DRIncAr,bins_EsimDivNcr,"numJet_ESimDivNcr_Eta_Pt_DRIncAr","Average crystal energy for jet","$frac{E_{sim}}{n}, GeV");
     
@@ -330,6 +397,8 @@ void ECalJetInteractionProcessor::FillEventHistograms (const EventCollections &e
 void ECalJetInteractionProcessor::FillEventData (const EventCollections &eventDataContainer) {
     //Resetting event storage
     //std::cout << "reset" << std::endl;
+    //Resetting SIM barrel
+    counter++;
     for (auto &currentiPhiList : barrelCrystalEnergyEvent) {
         std::fill (currentiPhiList.begin(),currentiPhiList.end(),0);
     }
@@ -343,32 +412,84 @@ void ECalJetInteractionProcessor::FillEventData (const EventCollections &eventDa
         std::fill (currentiPhiList.begin(),currentiPhiList.end(),0);
     }
     
+    //Resetting SIM endcap
     for (auto &currentiYList : endcapCrystalEnergyEventPosz) {
         std::fill (currentiYList.begin(),currentiYList.end(),0);
     }
     for (auto &currentiYList : endcapCrystalEnergyEventNegz) {
         std::fill (currentiYList.begin(),currentiYList.end(),0);
     }
-    std::fill (endcapPoszSupercrystalEnergyEvent.begin(),endcapPoszSupercrystalEnergyEvent.end(),0);
-    std::fill (endcapNegzSupercrystalEnergyEvent.begin(),endcapNegzSupercrystalEnergyEvent.end(),0);
+    for (auto &currentiYList : endcapCrystalEnergyTEventPosz) {
+        std::fill (currentiYList.begin(),currentiYList.end(),0);
+    }
+    for (auto &currentiYList : endcapCrystalEnergyTEventNegz) {
+        std::fill (currentiYList.begin(),currentiYList.end(),0);
+    }
+    
+    std::fill (endcapPoszSuperCrystalEnergyEvent.begin(),endcapPoszSuperCrystalEnergyEvent.end(),0);
+    std::fill (endcapNegzSuperCrystalEnergyEvent.begin(),endcapNegzSuperCrystalEnergyEvent.end(),0);
+    std::fill (endcapPoszSuperCrystalEnergyTEvent.begin(),endcapPoszSuperCrystalEnergyTEvent.end(),0);
+    std::fill (endcapNegzSuperCrystalEnergyTEvent.begin(),endcapNegzSuperCrystalEnergyTEvent.end(),0);
+    
+    //Resetting Rec Barrel
+    for (auto &currentiPhiList : barrelCrystalRecEnergyEvent) {
+        std::fill (currentiPhiList.begin(),currentiPhiList.end(),0);
+    }
+    for (auto &currentiPhiList : barrelSuperCrystalRecEnergyEvent) {
+        std::fill (currentiPhiList.begin(),currentiPhiList.end(),0);
+    }
+    for (auto &currentiPhiList : barrelCrystalRecEnergyTEvent) {
+        std::fill (currentiPhiList.begin(),currentiPhiList.end(),0);
+    }
+    for (auto &currentiPhiList : barrelSuperCrystalRecEnergyTEvent) {
+        std::fill (currentiPhiList.begin(),currentiPhiList.end(),0);
+    }
+    
+    //Resetting Rec Endcap
+    for (auto &currentiYList : endcapCrystalRecEnergyEventPosz) {
+        std::fill (currentiYList.begin(),currentiYList.end(),0);
+    }
+    for (auto &currentiYList : endcapCrystalRecEnergyEventNegz) {
+        std::fill (currentiYList.begin(),currentiYList.end(),0);
+    }
+    for (auto &currentiYList : endcapCrystalRecEnergyTEventPosz) {
+        std::fill (currentiYList.begin(),currentiYList.end(),0);
+    }
+    for (auto &currentiYList : endcapCrystalRecEnergyTEventNegz) {
+        std::fill (currentiYList.begin(),currentiYList.end(),0);
+    }
+    
+    std::fill (endcapPoszSuperCrystalRecEnergyEvent.begin(),endcapPoszSuperCrystalRecEnergyEvent.end(),0);
+    std::fill (endcapNegzSuperCrystalRecEnergyEvent.begin(),endcapNegzSuperCrystalRecEnergyEvent.end(),0);
+    std::fill (endcapPoszSuperCrystalRecEnergyTEvent.begin(),endcapPoszSuperCrystalRecEnergyTEvent.end(),0);
+    std::fill (endcapNegzSuperCrystalRecEnergyTEvent.begin(),endcapNegzSuperCrystalRecEnergyTEvent.end(),0);
+    
+    //Cleaning hard jet pointer collection
+    filteredCollections.hardGenJetPointers.clear();
+    filteredCollections.hardPFJetPointers.clear();
     
     //Filling event storage
     
     //loop over barrel hits
     for (auto &currentHit : eventDataContainer.barrelHitsContainer) {
         FillHitInfo(currentHit,true,eventDataContainer);
-        
     }
     //std::cout << "endcap enter" << std::endl;
     //loop over endcap hits
     for (auto &currentHit : eventDataContainer.endcapHitsContainer) {
        FillHitInfo(currentHit,false,eventDataContainer);
-        
-        
     }
-    //Cleaning hard jet pointer collection
-    filteredCollections.hardGenJetPointers.clear();
-    filteredCollections.hardPFJetPointers.clear();
+    
+    //Rechits ahoy!
+    //std::cout << "Filling rechits!" << std::endl;
+    //Should be okay to keep even with 
+    for (auto &currentHit : eventDataContainer.barrelRecHitsContainer) {
+       FillRecHitInfo (currentHit,true,eventDataContainer);
+    }
+    for (auto &currentHit : eventDataContainer.endcapRecHitsContainer) {
+       FillRecHitInfo (currentHit,false,eventDataContainer);
+    }
+    
     
     //Filling hard jet pointer collection
     for (auto &currentGenJet:eventDataContainer.genJets) {
@@ -385,17 +506,30 @@ void ECalJetInteractionProcessor::FillEventData (const EventCollections &eventDa
 }
 
 void ECalJetInteractionProcessor::FillHitInfo (const PCaloHit &currentHit, bool isBarrel, const EventCollections &eventDataContainer) {
+    double eta;
+    double energy;
+    double energyT;
     if (isBarrel) {
-        double eta;
-        double energy;
-        double energyT;
         EBDetId infoHitBarrel (currentHit.id());
         eta = eventDataContainer.barrelGeometry->getGeometry(currentHit.id())->getPosition().eta();
         energy = currentHit.energy();
         energyT = currentHit.energy()/cosh(eta);
         
+        //figuring stuff out
+        /*
+        double ietaTower = infoHitBarrel.tower().ieta(); 
+        double zsideTower = infoHitBarrel.tower().zside();
+        if (energy > 0.00001 && (ietaTower == 0 || (ietaTower > 0 && zsideTower < 0) || (ietaTower < 0 && zsideTower > 0)) ) std::cout << "Energy is " << energy << " Crystal coordinates are: ieta " << infoHitBarrel.ieta() << " iphi " << infoHitBarrel.iphi() <<  " zside " << infoHitBarrel.zside() <<" Tower coordinates are: iphi " <<  infoHitBarrel.tower().ieta() << " iphi " << infoHitBarrel.tower().iphi() << " zside " << infoHitBarrel.tower().zside() << std::endl;
+        std::pair <double,double> towerCoordPair(infoHitBarrel.tower().ieta(),infoHitBarrel.tower().iphi());
+        if(std::find(BarrelTowerCoord.begin(), BarrelTowerCoord.end(), towerCoordPair) != BarrelTowerCoord.end()) {
+            
+        } else {
+            BarrelTowerCoord.push_back(towerCoordPair);
+        }*/
+        //Result for barrel zside is 1 if tower().ieta()>0 and -1 if tower().ieta()<0. tower().ieta() can't be 0?
+        
         //Barrel Crystal Coords: [arrayCiEta(iEta)][arrayCiPhi(iPhi)]
-        //Barrel Supercrystal Coords: [arraySCiEta(iEta)][arraySCiPhi(iPhi)]
+        //Barrel SuperCrystal Coords: [arraySCiEta(iEta)][arraySCiPhi(iPhi)]
         barrelCrystalEnergyEvent.at(arrayCiEta(infoHitBarrel.ieta())).at(arrayCiPhi(infoHitBarrel.iphi()))+=energy;
         barrelCrystalEnergyTEvent.at(arrayCiEta(infoHitBarrel.ieta())).at(arrayCiPhi(infoHitBarrel.iphi()))+=energyT;
         
@@ -404,9 +538,10 @@ void ECalJetInteractionProcessor::FillHitInfo (const PCaloHit &currentHit, bool 
         barrelSuperCrystalEnergyTEvent.at(arraySCiEta(infoHitBarrel.tower().ieta())).at(arraySCiPhi(infoHitBarrel.tower().iphi()))+=energyT;
         
     }else {
-        double energy;
         EEDetId infoHitEndcap (currentHit.id());
+        eta = eventDataContainer.endcapGeometry->getGeometry(currentHit.id())->getPosition().eta();
         energy = currentHit.energy();
+        energyT = currentHit.energy()/cosh(eta);
         
         //Endcap SC coords: just supercrystal id
         //Endcap Crystal coords: [iX][iY]
@@ -415,13 +550,67 @@ void ECalJetInteractionProcessor::FillHitInfo (const PCaloHit &currentHit, bool 
         if (infoHitEndcap.positiveZ()) {
             //std::cout << "Z+ coords: "<< infoHitEndcap.ix() << " " << infoHitEndcap.iy()  << " " << infoHitEndcap.isc()  << std::endl;
             endcapCrystalEnergyEventPosz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energy;
-            endcapPoszSupercrystalEnergyEvent.at(infoHitEndcap.isc())+=energy;
+            endcapPoszSuperCrystalEnergyEvent.at(infoHitEndcap.isc())+=energy;
+            endcapCrystalEnergyTEventPosz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energyT;
+            endcapPoszSuperCrystalEnergyTEvent.at(infoHitEndcap.isc())+=energyT;
 
         }
         else {
             //std::cout << "Z- coords: "<< infoHitEndcap.ix() << " " << infoHitEndcap.iy()  << " " << infoHitEndcap.isc()  << std::endl;
             endcapCrystalEnergyEventNegz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energy;
-            endcapNegzSupercrystalEnergyEvent.at(infoHitEndcap.isc())+=energy;
+            endcapNegzSuperCrystalEnergyEvent.at(infoHitEndcap.isc())+=energy;
+            endcapCrystalEnergyTEventNegz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energyT;
+            endcapNegzSuperCrystalEnergyTEvent.at(infoHitEndcap.isc())+=energyT;
+        }
+    }
+}
+
+void ECalJetInteractionProcessor::FillRecHitInfo (const EcalRecHit &currentHit, bool isBarrel, const EventCollections &eventDataContainer) {
+    //Temporary degeneracy goin on here, to be deleted later
+    EBDetId infoHitBarrel (currentHit.id());
+    std::cout << "Barrel rechit  coordinates: ieta = "<< infoHitBarrel.ieta() << " iphi = " << infoHitBarrel.iphi() << " E = " << currentHit.energy() << std::endl;
+    if (isBarrel) {
+        double energy, eta, energyT;
+        EBDetId infoHitBarrel (currentHit.id());
+        eta = eventDataContainer.barrelGeometry->getGeometry(currentHit.id())->getPosition().eta();
+        energy = currentHit.energy();
+        energyT = currentHit.energy()/cosh(eta);
+        
+        //Barrel Crystal Coords: [arrayCiEta(iEta)][arrayCiPhi(iPhi)]
+        //Barrel SuperCrystal Coords: [arraySCiEta(iEta)][arraySCiPhi(iPhi)]
+        barrelCrystalRecEnergyEvent.at(arrayCiEta(infoHitBarrel.ieta())).at(arrayCiPhi(infoHitBarrel.iphi()))+=energy;
+        barrelCrystalRecEnergyTEvent.at(arrayCiEta(infoHitBarrel.ieta())).at(arrayCiPhi(infoHitBarrel.iphi()))+=energyT;
+        
+        //std::cout << "supercrystal coordinates are "<< infoHitBarrel.tower().ieta() << " " << arraySCiEta(infoHitBarrel.tower().ieta())<< " " << infoHitBarrel.tower().iphi() << std::endl;
+        barrelSuperCrystalRecEnergyEvent.at(arraySCiEta(infoHitBarrel.tower().ieta())).at(arraySCiPhi(infoHitBarrel.tower().iphi()))+=energy;
+        barrelSuperCrystalRecEnergyTEvent.at(arraySCiEta(infoHitBarrel.tower().ieta())).at(arraySCiPhi(infoHitBarrel.tower().iphi()))+=energyT;
+        
+    }else {
+        double energy, eta, energyT;
+        EEDetId infoHitEndcap (currentHit.id());
+        eta = eventDataContainer.endcapGeometry->getGeometry(currentHit.id())->getPosition().eta();
+        energy = currentHit.energy();
+        energyT = currentHit.energy()/cosh(eta);
+        
+        
+        //Endcap SC coords: just supercrystal id
+        //Endcap Crystal coords: [iX][iY]
+        
+        
+        if (infoHitEndcap.positiveZ()) {
+            //std::cout << "Z+ coords: "<< infoHitEndcap.ix() << " " << infoHitEndcap.iy()  << " " << infoHitEndcap.isc()  << std::endl;
+            endcapCrystalRecEnergyEventPosz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energy;
+            endcapPoszSuperCrystalRecEnergyEvent.at(infoHitEndcap.isc())+=energy;
+            endcapCrystalRecEnergyTEventPosz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energyT;
+            endcapPoszSuperCrystalRecEnergyTEvent.at(infoHitEndcap.isc())+=energyT;
+
+        }
+        else {
+            //std::cout << "Z- coords: "<< infoHitEndcap.ix() << " " << infoHitEndcap.iy()  << " " << infoHitEndcap.isc()  << std::endl;
+            endcapCrystalRecEnergyEventNegz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energy;
+            endcapNegzSuperCrystalRecEnergyEvent.at(infoHitEndcap.isc())+=energy;
+            endcapCrystalRecEnergyTEventNegz.at(infoHitEndcap.ix()).at(infoHitEndcap.iy()) += energyT;
+            endcapNegzSuperCrystalRecEnergyTEvent.at(infoHitEndcap.isc())+=energyT;
         }
     }
 }
@@ -756,6 +945,7 @@ bool  ECalJetInteractionProcessor::IsEndcapJet (const reco::Jet &jet, const Even
 
 
 void  ECalJetInteractionProcessor::FillJetCrystalSplitHistograms (const reco::Jet &jet, int number, double lowCutoffDR, double highCutoffDR, const EventCollections &eventDataContainer) {
+    //looping over SIM barrel crystals
     for (int ieta = barrelCrystalMiniEta; arrayCiEta(ieta) < barrelCrystaliEtaCount; ieta++) {
         for (int iphi=1; arrayCiPhi(iphi) < barrelCrystaliPhiCount; iphi++) {
             if (IsInterestingBarrelHit(ieta,iphi)) {
@@ -775,6 +965,7 @@ void  ECalJetInteractionProcessor::FillJetCrystalSplitHistograms (const reco::Je
             }
         }
     }
+    //looping over SIM endcap crystals
     for (int ix=0; ix<endcapiXCount; ix++) {
         for (int iy=0; iy<endcapiXCount; iy++) {
             if (IsInterestingEndcapHit(ix,iy,true)) {
@@ -807,19 +998,35 @@ void  ECalJetInteractionProcessor::FillJetCrystalSplitHistograms (const reco::Je
             }
         }
     }
+    //Write two loops for sypercrystals
+    //looping over SIM barrel sypercrystals
     
+    //int barrelSuperCrystaliEtaCount = 17*2+1;
+    //int barrelSuperCrystaliPhiCount = 72;
+    /*for (int ieta = barrelCrystalMiniEta; arrayCiEta(ieta) < barrelCrystaliEtaCount; ieta++) {
+        for (int iphi=1; arrayCiPhi(iphi) < barrelCrystaliPhiCount; iphi++) {
+            if (IsInterestingBarrelHit(ieta,iphi)) {
+                EBDetId crystalId = EBDetId(ieta,iphi);
+                double etaCr = eventDataContainer.barrelGeometry->getGeometry(crystalId)->getPosition().eta();
+                double phiCr = eventDataContainer.barrelGeometry->getGeometry(crystalId)->getPosition().phi();
+                double DR = deltaR (jet.eta(),jet.phi(),etaCr,phiCr);
+                if (DR < highCutoffDR) {
+                    
+                }
+                   //fill hist with 
+            }
+        }
+    }//*/
+    // #include <EcalTrigTowerDetId.h> //Maybe already included by EBDetId
+    // 
     
+    //looping over SIM barrel sypercrystals
     
-    /*
-    std::vector <TH3D*> numCrystal_ESim_Eta_Pt_DRIncAr;
-    std::vector <TH3D*> numCrystal_ESimT_Eta_Pt_DRIncAr;
-    */
 }
 
 
 
 void ECalJetInteractionProcessor::FinalizeHistograms (){
-    // the nessesary pt adjustments, an extra 1.4037 powers of pt up - already done
 }
 
 

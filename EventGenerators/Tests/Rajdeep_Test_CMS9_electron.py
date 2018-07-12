@@ -3,9 +3,7 @@
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
 # with command line options: Configuration/Generator/python/SingleElectronPt10_cfi.py -s GEN,SIM,DIGI,L1,DIGI2RAW,HLT:@frozen2016,RAW2DIGI,RECO --runUnscheduled --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --era Run2_2016 --nThreads 4 --datatier AODSIM --eventcontent AODSIM -n 100 --python_filename SingleElectronPt10_cfi_py_GEN_IDEAL.py
-
 import FWCore.ParameterSet.Config as cms
-import sys
 
 from Configuration.StandardSequences.Eras import eras
 
@@ -33,21 +31,19 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(25)
-)
-process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1)
-
 process.load("IOMC.RandomEngine.IOMC_cff")
 #process.RandomNumberGeneratorService.g4SimHits.initialSeed = 9876
 process.RandomNumberGeneratorService.generator.initialSeed = 9879 
 #process.RandomNumberGeneratorService.VtxSmeared.initialSeed = 79736
 
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(25)
+)
+
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
 
 # Input source
 process.source = cms.Source("EmptySource")
-#Changing seed
-process.RandomNumberGeneratorService.generator.initialSeed =  int(sys.argv[2])
 
 process.options = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True)
@@ -61,13 +57,20 @@ process.configurationMetadata = cms.untracked.PSet(
 )
 
 # Output definition
-process.AODSIMEventContent.outputCommands.append('keep *')
-process.AODSIMEventContent.outputCommands.append('drop *_*_*_*')
+#process.AODSIMEventContent.outputCommands.append('drop *_*_*_*')
 process.AODSIMEventContent.outputCommands.append('keep *_*_EcalHitsE*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_gedPhotons_*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_photons_*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_gedPhotonCore_*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_photonCore_*_*')
+
+process.AODSIMEventContent.outputCommands.append('keep *_gedGsfElectrons_*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_gedGsfElectronCores_*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_uncleanedOnlyGsfElectronCores_*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_electronGsfTracks_*_*')
+
 process.AODSIMEventContent.outputCommands.append('keep *_genParticles_*_*')
-process.AODSIMEventContent.outputCommands.append('keep *_ak4GenJets_*_*')
-process.AODSIMEventContent.outputCommands.append('keep *_ak4PFJets_*_*')
-process.AODSIMEventContent.outputCommands.append('keep *_reducedEcalRecHitsE*_*_*')
+process.AODSIMEventContent.outputCommands.append('keep *_addPileupInfo_*_*')
 
 process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
     SelectEvents = cms.untracked.PSet(
@@ -80,7 +83,7 @@ process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
         filterName = cms.untracked.string('')
     ),
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
-    fileName = "/local/cms/user/guts/JetGenerator/Output/JetMC_Py8_%03d.root"%int(sys.argv[2]),
+    fileName = cms.untracked.string('Generate_Prompt_Electron_000.root'),
     outputCommands = process.AODSIMEventContent.outputCommands
 )
 
@@ -92,43 +95,21 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '94X_mc2017_realistic_v14', '')
 
 
-
-
-
-###########################################################################
-from Configuration.Generator.Pythia8CommonSettings_cfi import *
-from Configuration.Generator.Pythia8CUEP8M1Settings_cfi import *
-
-process.generator = cms.EDFilter("Pythia8GeneratorFilter",
-        comEnergy = cms.double(13000.0),
-        crossSection = cms.untracked.double(2.0221e+09),
-        filterEfficiency = cms.untracked.double(1.0),
-        maxEventsToPrint = cms.untracked.int32(1),
-        pythiaHepMCVerbosity = cms.untracked.bool(False),
-        pythiaPylistVerbosity = cms.untracked.int32(1),
-        #reweightGen = cms.bool(True), #
-
-        PythiaParameters = cms.PSet(
-                pythia8CommonSettingsBlock,
-                pythia8CUEP8M1SettingsBlock,
-                processParameters = cms.vstring(
-                        'HardQCD:all = on',
-                        'PhaseSpace:pTHatMin = 15',
-                        #'PhaseSpace:pTHatMax = 500',
-                        'PhaseSpace:bias2Selection = on',
-                        'PhaseSpace:bias2SelectionPow = 6',
-                        'PhaseSpace:bias2SelectionRef = 15.',
-
-                ),
-                parameterSets = cms.vstring('pythia8CommonSettings',
-                                            'pythia8CUEP8M1Settings',
-                                            'processParameters'
-                                            )
-        )
-) 
-
-
-###########################################################################
+process.generator = cms.EDProducer("FlatRandomPtGunProducer",
+    AddAntiParticle = cms.bool(True),
+    PGunParameters = cms.PSet(
+        MaxEta = cms.double(0.41),
+        MaxPhi = cms.double(3.14159265359),
+        MaxPt = cms.double(46),
+        MinEta = cms.double(0.4),
+        MinPhi = cms.double(-3.14159265359),
+        MinPt = cms.double(45),
+        PartID = cms.vint32(11)
+    ),
+    Verbosity = cms.untracked.int32(0),
+    firstRun = cms.untracked.uint32(1),
+    psethack = cms.string('single electron pt 10')
+)
 
 
 # Path and EndPath definitions

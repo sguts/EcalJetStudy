@@ -8,6 +8,9 @@
 #include "SimDataFormats/CaloHit/interface/PCaloHit.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
 
+//Rec-level objects
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 
@@ -128,7 +131,7 @@ struct JetEcalHistogramContainer {
     TH1D *simEcal_EndDepETcryst_hardJets;
     
     
-    TH1D *genJetsAvEDepBar_fracE;
+    TH1D *genJetsAvEDepBar_fracE; //Conviner! Divide those by 
     TH1D *genJetsAvEDepEnd_fracE;
     
     TH1D *genJetsAvSoftJetE_Bar_fracE;
@@ -142,8 +145,12 @@ struct JetEcalHistogramContainer {
 struct JetEcalSplitHistogramContainer {
     std::vector <TH3D*> numCrystal_ESim_Eta_Pt_DRIncAr;
     std::vector <TH3D*> numCrystal_ESimT_Eta_Pt_DRIncAr;
+    
+    std::vector <TH3D*> numSuperCrystal_ESim_Eta_Pt_DRIncAr; //Under Construction
+    std::vector <TH3D*> numSuperCrystal_ESimT_Eta_Pt_DRIncAr; //Under Construction
 
     std::vector <TH3D*> numJet_ESimDivNcr_Eta_Pt_DRIncAr;
+    
     std::vector <TH3D*> numJet_ESimDivNcr_Eta_Pt_DRDifAr;
 
     std::vector <TH3D*> numJet_ESimDivEjet_Eta_Pt_DRIncAr;
@@ -165,6 +172,9 @@ struct EventCollections {
     
     edm::PCaloHitContainer endcapHitsContainer;
     edm::PCaloHitContainer barrelHitsContainer;
+    
+    edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>> endcapRecHitsContainer;
+    edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>> barrelRecHitsContainer;
 
     const CaloSubdetectorGeometry *endcapGeometry = nullptr;
     const CaloSubdetectorGeometry *barrelGeometry = nullptr;
@@ -207,6 +217,7 @@ private:
     
     void FillEventData (const EventCollections &eventDataContainer);
     void FillHitInfo (const PCaloHit &currentHit, bool isBarrel, const EventCollections &eventDataContainer);
+    void FillRecHitInfo (const EcalRecHit &currentHit, bool isBarrel, const EventCollections &eventDataContainer);
     
     bool IsInterestingBarrelHit (int ieta, int iphi);
     bool IsInterestingEndcapHit (int ix, int iy, bool Posz);
@@ -243,24 +254,63 @@ private:
     int barrelCrystaliPhiCount = 360;
     int barrelCrystalMiniEta = -85;
     
+    int barrelSuperCrystaliEtaCount = 17*2+1;
+    int barrelSuperCrystaliPhiCount = 72;
+    
+    int endcapSuperCrystalCount = 317;
+    int endcapiXCount=101;
+    
+    //Coordinate system explanation for arrays:
+    //Currently fixing
+    //Barrel Crystal Coords: [arrayCiEta(iEta)][iPhi]
+    //ieta goes from -85 to 85 with no crystal at IETA=0, arrayCiEta goes from 0 to 170. 85 is present, but plays no role
+    //iphi goes from 1 to 360, we are perhaps missing 360 in our loops?
+    //Barrel SuperCrystal Coords: [arraySCiEta(iEta)][iPhi]
+    //
+    //iPhi goes from 
+    
+    //SIM level event energy
     std::vector<std::vector<double>> barrelCrystalEnergyEvent;
     std::vector<std::vector<double>> barrelCrystalEnergyTEvent;
     
-    int barrelSuperCrystaliEtaCount = 17*2+1;
-    int barrelSuperCrystaliPhiCount = 72;
     std::vector<std::vector<double>> barrelSuperCrystalEnergyEvent;
     std::vector<std::vector<double>> barrelSuperCrystalEnergyTEvent;
     
-    int endcapSupercrystalCount = 317;
-    std::vector<double> endcapPoszSupercrystalEnergyEvent;
-    std::vector<double> endcapNegzSupercrystalEnergyEvent;
-    
-    int endcapiXCount=101;
     std::vector<std::vector<double>> endcapCrystalEnergyEventPosz;
     std::vector<std::vector<double>> endcapCrystalEnergyEventNegz;
+    std::vector<std::vector<double>> endcapCrystalEnergyTEventPosz;
+    std::vector<std::vector<double>> endcapCrystalEnergyTEventNegz;
+    
+    std::vector<double> endcapPoszSuperCrystalEnergyEvent;
+    std::vector<double> endcapNegzSuperCrystalEnergyEvent;
+    std::vector<double> endcapPoszSuperCrystalEnergyTEvent;
+    std::vector<double> endcapNegzSuperCrystalEnergyTEvent;
+    
+    
+    //Rec level event energy
+    std::vector<std::vector<double>> barrelCrystalRecEnergyEvent;
+    std::vector<std::vector<double>> barrelCrystalRecEnergyTEvent;
+    
+    std::vector<std::vector<double>> barrelSuperCrystalRecEnergyEvent;
+    std::vector<std::vector<double>> barrelSuperCrystalRecEnergyTEvent;
+    
+    std::vector<std::vector<double>> endcapCrystalRecEnergyEventPosz;
+    std::vector<std::vector<double>> endcapCrystalRecEnergyEventNegz;
+    std::vector<std::vector<double>> endcapCrystalRecEnergyTEventPosz;
+    std::vector<std::vector<double>> endcapCrystalRecEnergyTEventNegz;
+    
+    std::vector<double> endcapPoszSuperCrystalRecEnergyEvent;
+    std::vector<double> endcapNegzSuperCrystalRecEnergyEvent;
+    std::vector<double> endcapPoszSuperCrystalRecEnergyTEvent;
+    std::vector<double> endcapNegzSuperCrystalRecEnergyTEvent;
+    
     
     double jetsSeparationDR = 2;
     std::vector<double> listConeDR;
+    
+    //Debug variable section
+    int counter = 0;
+    std::vector<std::pair<double,double>> BarrelTowerCoord;
 };
 
 

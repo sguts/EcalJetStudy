@@ -29,16 +29,18 @@ private:
     void PlotTestHistograms ();
     void CloseFile ();
 
-    TCanvas* CanvasSetup (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, bool logY=false, double maxY=-1);
+    TCanvas* CanvasSetup (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, bool logY=false, double minY=-1, double maxY=-1);
         
-    void Plot1D (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, int color, bool logY=false);
+    void Plot1D (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, int color, bool logY=false, double maxY=-1, double minY=-1);
 
     void Plot2D (TH2 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize);
 
 
-    void Plot3DCollapseEtaSplitPt (TH3 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, bool logY=false, double maxY=-1);
+    //3D hists coordinates: variable, eta, pt
+    void Plot3DCollapseEtaSplitPt (TH3 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, bool logY=false, double maxY=-1); 
     void Plot3DSplitEtaCollapsePt (TH3 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, bool logY=false, double maxY=-1);
-    //void Plot3DCollapseEtaCollapsePt (TH3 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, int color, bool logY=false);
+    
+    void Plot3DChooseEtaChoosePt (TH3 *hist, int etaMinBin, int etaMaxBin, int ptMinBin, int ptMaxBin,  std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, int color, bool logY=false);
 
     void Plot3DMake2D (TH3 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, bool mean=true, bool logY=false);
     void MakePartonPlot ();
@@ -71,12 +73,13 @@ PrettyPlotRootScript::~PrettyPlotRootScript() {
 }
 
 bool PrettyPlotRootScript::OpenFile (std::string histFileName) {
-	inputFile = new TFile ("/home/guts/CMS/CMSSW_9_4_0/src/EcalJetInteractionStudy/Output/Result.root","READ");
+	inputFile = new TFile ("/afs/cern.ch/user/s/sguts/public/EcalJetSIMStudy/JetEcalSampleHistIteration1.root","READ");
         if (!inputFile) return false;
         return true;
 }
 
 void PrettyPlotRootScript::PlotHistograms() {
+    //gROOT->SetBatch(kTRUE); //Figure out how it works
     TH1D *genJetPtHist = (TH1D *) inputFile->Get("ecalAnalyzer/JetHist/genJetsPt");
     Plot1D (genJetPtHist,"genJetPtPlot.pdf","p_{T} of Gen Jets","p_{T}, GeV", "N_{jets}", 2400,2000,4,true);
 
@@ -105,11 +108,34 @@ void PrettyPlotRootScript::PlotHistograms() {
     Plot3DMake2D (EDivEJet, "EDivEJetAvMean.pdf", "Average of E_{sim}/E_{gen}", "|#eta|", "p_{T}, GeV", 2400,2000);
     Plot3DMake2D (EDivEJet, "EDivEJetAvRMS.pdf", "RMS of  E_{sim}/E_{gen}", "|#eta|", "p_{T}, GeV", 2400, 2000, false);
     
+    Plot3DChooseEtaChoosePt (EDivEJet,1,1,1,1, "EDivEJetBin1_1.pdf", "E_{sim}/E_{gen}", "E_{sim}/E_{gen}","",2400, 2000,colorArray[2]);
+    Plot3DChooseEtaChoosePt (EDivEJet,1,1,3,3, "EDivEJetBin1_3.pdf", "E_{sim}/E_{gen}", "E_{sim}/E_{gen}","",2400, 2000,colorArray[2]);
     
+    
+    TH1D *genJetsAvEDepBar_fracE = (TH1D *) inputFile->Get("ecalAnalyzer/JetHist/genJetsAvEDepBar_fracE");
+    TH1D *genJetsAvEDepEnd_fracE = (TH1D *) inputFile->Get("ecalAnalyzer/JetHist/genJetsAvEDepEnd_fracE");
+    
+    TH1D *genJetsAvSoftJetE_Bar_fracE = (TH1D *) inputFile->Get("ecalAnalyzer/JetHist/genJetsAvSoftJetE_Bar_fracE");
+    TH1D *genJetsAvSoftJetE_End_fracE = (TH1D *) inputFile->Get("ecalAnalyzer/JetHist/genJetsAvSoftJetE_End_fracE");
+    
+    TH1D *hardBarrelJetCount = (TH1D *) inputFile->Get("ecalAnalyzer/JetHist/hardBarrelJetCount");
+    TH1D *hardEndcapJetCount = (TH1D *) inputFile->Get("ecalAnalyzer/JetHist/hardEndcapJetCount");
+    
+    
+    genJetsAvEDepBar_fracE->Scale(1/hardBarrelJetCount->GetEntries());
+    genJetsAvEDepEnd_fracE->Scale(1/hardEndcapJetCount->GetEntries());
 
+    genJetsAvSoftJetE_Bar_fracE->Scale(1/hardBarrelJetCount->GetEntries());
+    genJetsAvSoftJetE_End_fracE->Scale(1/hardEndcapJetCount->GetEntries());
+    
+    Plot1D(genJetsAvEDepBar_fracE,"genJetsAvEDepBar_fracE.pdf","Average #frac{E_{sim}^{DR}}{E_{gen}} for hard jets in barrel","DR","",2400,2000,4,false,0,0.6);
+    Plot1D(genJetsAvEDepEnd_fracE,"genJetsAvEDepEnd_fracE.pdf","Average #frac{E_{sim}^{DR}}{E_{gen}} for hard jets in endcap","DR","",2400,2000,4,false,0,0.6);
+    
+    Plot1D(genJetsAvSoftJetE_Bar_fracE,"genJetsAvSoftJetE_Bar_fracE.pdf","Average #frac{E_{soft}^{DR}}{E_{gen}} for hard jets in barrel","DR","",2400,2000,4,false,0,0.1);
+    Plot1D(genJetsAvSoftJetE_End_fracE,"genJetsAvSoftJetE_End_fracE.pdf","Average #frac{E_{soft}^{DR}}{E_{gen}} for hard jets in endcap","DR","",2400,2000,4,false,0,0.1);
 }
 
-TCanvas* PrettyPlotRootScript::CanvasSetup (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize,  bool logY, double maxY) {
+TCanvas* PrettyPlotRootScript::CanvasSetup (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize,  bool logY, double maxY, double minY) {
     if (!hist) {
         std::cout << "Error, histogram named " << title << " doesn't exist" << std::endl;
     }
@@ -119,7 +145,8 @@ TCanvas* PrettyPlotRootScript::CanvasSetup (TH1 *hist, std::string filename, std
     hist->GetXaxis()->SetTitle(Xtitle.c_str());
     hist->GetYaxis()->SetTitle(Ytitle.c_str());
     
-    if (maxY != -1) hist->GetYaxis()->SetRangeUser(1, maxY);
+    if (maxY != -1 && minY == -1) hist->GetYaxis()->SetRangeUser(1, maxY);
+    if (maxY != -1 && minY != -1) hist->GetYaxis()->SetRangeUser(minY, maxY);
     
     
     if (logY) c->SetLogy();
@@ -128,8 +155,8 @@ TCanvas* PrettyPlotRootScript::CanvasSetup (TH1 *hist, std::string filename, std
 
 }
 
-void PrettyPlotRootScript::Plot1D (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, int color, bool logY) {
-    auto c=CanvasSetup (hist,filename,title,Xtitle,Ytitle,Xsize,Ysize,logY);
+void PrettyPlotRootScript::Plot1D (TH1 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, int color, bool logY, double minY, double maxY) {
+    auto c=CanvasSetup (hist,filename,title,Xtitle,Ytitle,Xsize,Ysize,logY,maxY,minY);
     
     hist->SetLineColor(color);
     hist->SetLineWidth(2);
@@ -221,6 +248,25 @@ void PrettyPlotRootScript::Plot3DSplitEtaCollapsePt (TH3 *hist, std::string file
     
 }
 
+void PrettyPlotRootScript::Plot3DChooseEtaChoosePt (TH3 *hist, int etaMinBin, int etaMaxBin, int ptMinBin, int ptMaxBin,  std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, int color, bool logY){
+    std::cout << "Hello there!" <<std::endl;
+    TH1D *tempHist = (TH1D *) hist->ProjectionX("_px",etaMinBin,etaMaxBin,ptMinBin,ptMaxBin)->Clone();
+    auto c=CanvasSetup (tempHist,filename,title,Xtitle,Ytitle,Xsize,Ysize,logY);
+    auto legend = new TLegend(0.5,0.8,0.9,0.9);
+    
+    tempHist->SetLineColor(color);
+    tempHist->SetLineWidth(2);
+    tempHist->Draw("same");
+    
+    legend->AddEntry(tempHist,(
+        to_string_with_precision(etaBinning.at(etaMinBin-1),3)+" < |#eta| < "+to_string_with_precision(etaBinning.at(etaMaxBin),3)+" "+to_string_with_precision(ptBinning.at(ptMinBin-1),3)+" < p_{T} < "+to_string_with_precision(ptBinning.at(ptMaxBin),3)+"  #mu = "+ to_string_with_precision(tempHist->GetMean(),4) + " #sigma = " + to_string_with_precision(tempHist->GetRMS(),4)
+    ).c_str(),"L");
+    legend->Draw("same");
+    
+    c->SaveAs(filename.c_str());
+}
+
+
 void PrettyPlotRootScript::MakePartonPlot () {
     std::cout << "Making constituents plot" << std::endl;
     TH1D *pions =(TH1D *) inputFile->Get("ecalAnalyzer/JetHist/genPartonsJetDR_pions");
@@ -260,31 +306,43 @@ void PrettyPlotRootScript::MakePartonPlot () {
 }
 
 void PrettyPlotRootScript::Plot3DMake2D (TH3 *hist, std::string filename, std::string title, std::string Xtitle, std::string Ytitle, int Xsize, int Ysize, bool mean, bool logY){
+    std::cout << "Profile s option applied" << mean << std::endl;
     TProfile2D *profile= hist->Project3DProfile("zy");
+    profile->SetErrorOption("s");
     std::string meanOption;
-    if (mean) meanOption=std::string("E");
-        else meanOption=std::string("C=E");
+    if (mean) {
+        meanOption=std::string("E");
+        
+    }
+        else {
+            meanOption=std::string("C=E");
+        }
     std::cout << "Entering procedure , mean is " << mean << std::endl;
     TH2D *plotHist = profile->ProjectionXY("_pxy",meanOption.c_str());
-    auto c=CanvasSetup (profile,filename,title,Xtitle,Ytitle,Xsize,Ysize);
+    auto c=CanvasSetup (plotHist ,filename,title,Xtitle,Ytitle,Xsize,Ysize);
     
-    plotHist->SetTitle(title.c_str());
-    plotHist->GetXaxis()->SetTitle(Xtitle.c_str());
-    plotHist->GetYaxis()->SetTitle(Ytitle.c_str());
+    
+    if (mean) std::cout << "For going through TProfile2D bin value is " << plotHist ->GetBinContent(1,1) << " bin error for 1,1 is " << plotHist ->GetBinError(1,1) << std::endl;
+    
+    plotHist ->SetTitle(title.c_str());
+    plotHist ->GetXaxis()->SetTitle(Xtitle.c_str());
+    plotHist ->GetYaxis()->SetTitle(Ytitle.c_str());
     
     gStyle->SetPaintTextFormat("1.4f");
     
-    plotHist->GetYaxis()->SetRangeUser(15,165);
+    plotHist ->GetYaxis()->SetRangeUser(15,165);
     
     std::cout << "First drawing , mean is " << mean << std::endl;
-    plotHist->Draw("colz" "SAME");
+    plotHist ->Draw("colz same");
     if (mean) {
-        plotHist->GetZaxis()->SetRangeUser(0.4, 0.5);
+        plotHist ->GetZaxis()->SetRangeUser(0.4, 0.5);
+    } else  {
+        plotHist ->GetZaxis()->SetRangeUser(0.12, 0.16);
     }
     c->Update();
     
     std::cout << "Pallete , mean is " << mean << std::endl;
-    TPaletteAxis *palette = (TPaletteAxis*)plotHist->GetListOfFunctions()->FindObject("palette");
+    TPaletteAxis *palette = (TPaletteAxis*)plotHist ->GetListOfFunctions()->FindObject("palette");
     if (!palette) std::cout << "Oh noes! No palette!" <<std::endl;
     palette->SetTitleSize (0.1);
     palette->SetLabelSize (0.1);
@@ -295,7 +353,7 @@ void PrettyPlotRootScript::Plot3DMake2D (TH3 *hist, std::string filename, std::s
     palette->SetY2NDC(0.9);
     c->Modified();
     
-    plotHist->Draw("TEXT" "SAME");
+    plotHist ->Draw("TEXT same");
     
     c->SaveAs(filename.c_str());
     

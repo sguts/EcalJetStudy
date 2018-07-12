@@ -95,6 +95,11 @@ class ParticleGunEcalHitStudy : public edm::one::EDAnalyzer<edm::one::SharedReso
       edm::EDGetTokenT<edm::PCaloHitContainer> pCaloHitsEEToken;
       edm::Handle<edm::PCaloHitContainer> pCaloHitsESHandle;
       edm::EDGetTokenT<edm::PCaloHitContainer> pCaloHitsESToken;
+      
+      edm::Handle<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit> > > recHitsEBHandle;
+      edm::EDGetTokenT<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit> > > recHitsEBToken;
+      edm::Handle<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit> > > recHitsEEHandle;
+      edm::EDGetTokenT<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit> > > recHitsEEToken;
 
       edm::Handle<std::vector<reco::PFJet>> PFJetsHandle;
       edm::EDGetTokenT<std::vector<reco::PFJet>> PFJetsToken;
@@ -126,7 +131,10 @@ ParticleGunEcalHitStudy::ParticleGunEcalHitStudy(const edm::ParameterSet& iConfi
    pCaloHitsEBToken = consumes<edm::PCaloHitContainer>(edm::InputTag("g4SimHits", "EcalHitsEB", "HLT"));
    pCaloHitsEEToken = consumes<edm::PCaloHitContainer>(edm::InputTag("g4SimHits", "EcalHitsEE", "HLT"));
    pCaloHitsESToken = consumes<edm::PCaloHitContainer>(edm::InputTag("g4SimHits", "EcalHitsES", "HLT"));
-
+   
+   recHitsEBToken   = consumes<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit> > >(edm::InputTag("reducedEcalRecHitsEB"));
+   recHitsEEToken   = consumes<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit> > >(edm::InputTag("reducedEcalRecHitsEE"));
+   //Rec hits are commented out
    
 
    
@@ -180,6 +188,9 @@ ParticleGunEcalHitStudy::analyze(const edm::Event& iEvent, const edm::EventSetup
    iEvent.getByToken(pCaloHitsEBToken, pCaloHitsEBHandle);     //PCaloHit Barrel
    iEvent.getByToken(pCaloHitsEEToken, pCaloHitsEEHandle);     //PCaloHit Endcap
    iEvent.getByToken(pCaloHitsESToken, pCaloHitsESHandle);     //PCaloHit Preshower
+   
+   iEvent.getByToken(recHitsEBToken, recHitsEBHandle); //RecHits Barrel
+   iEvent.getByToken(recHitsEEToken, recHitsEEHandle); //RecHits Endcap
 
    
    //std::cout << "Passing collections to class" << std::endl;
@@ -187,8 +198,12 @@ ParticleGunEcalHitStudy::analyze(const edm::Event& iEvent, const edm::EventSetup
    currentEventCollections.genParticles = *genParticleHandle;
    currentEventCollections.genJets = *genJetsHandle;
    currentEventCollections.PFJets = *PFJetsHandle;
+   
    currentEventCollections.endcapHitsContainer = *pCaloHitsEEHandle;
    currentEventCollections.barrelHitsContainer = *pCaloHitsEBHandle;
+   
+   //currentEventCollections.endcapRecHitsContainer = *recHitsEEHandle;
+   //currentEventCollections.barrelRecHitsContainer = *recHitsEBHandle;
 
    HistogramContainer.FillEventHistograms(currentEventCollections);
    //std::cout << "Finishing  analyze" << std::endl;
